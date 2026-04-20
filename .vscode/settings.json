@@ -1,0 +1,8 @@
+{
+  "python.testing.pytestArgs": ["tests_python"],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
+  "python.envFile": "${workspaceFolder}/tests_python/.env",
+  "python.defaultInterpreterPath": "/Users/Kimm/.venv/playwright/bin/python",
+  "python.pythonPath": "/Users/Kimm/.venv/playwright/bin/python"
+}
