@@ -4,11 +4,15 @@ from typing import Generator
 import pytest
 from playwright.sync_api import Browser, BrowserContext, Page, sync_playwright
 from pages.login_page import LoginPage, LOGIN_URL, TOP_URL
+from pages.account_management_page import AccountManagementPage, ADMIN_LOGIN_URL
 
 REPORT_PATH = os.path.join(os.path.dirname(__file__), "report", "report.html")
 
 VALID_EMAIL = os.getenv("TEST_EMAIL", "your_registered@email.com")
 VALID_PASSWORD = os.getenv("TEST_PASSWORD", "YourPassword1!")
+
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "kimtran@bravesoft.com.vn")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "brave0404")
 
 # HEADLESS=false → mở browser UI (dễ debug)
 # HEADLESS=true  → chạy ngầm, không mở browser (CI/CD, nhanh hơn)
@@ -45,6 +49,29 @@ def login_page(page: Page) -> Generator[LoginPage, None, None]:
     lp = LoginPage(page)
     lp.navigate()
     yield lp
+
+
+@pytest.fixture
+def admin_page(context: BrowserContext) -> Generator[Page, None, None]:
+    """Login to admin site and return authenticated page"""
+    p = context.new_page()
+    p.goto(ADMIN_LOGIN_URL)
+    p.wait_for_load_state("networkidle")
+    p.fill("input[name='email']", ADMIN_EMAIL)
+    p.fill("input[name='password']", ADMIN_PASSWORD)
+    p.click("button[type='submit']")
+    p.wait_for_url("**/account-management")
+    p.wait_for_load_state("networkidle")
+    yield p
+    p.close()
+
+
+@pytest.fixture
+def account_management_page(admin_page: Page) -> Generator[AccountManagementPage, None, None]:
+    """Navigate to account management and open new account modal"""
+    amp = AccountManagementPage(admin_page)
+    amp.open_new_account_modal()
+    yield amp
 
 
 def pytest_sessionfinish(session, exitstatus):
